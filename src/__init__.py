@@ -22,9 +22,9 @@ def parse_mnist_images(idx_file_path: str) -> np.ndarray:
 
         # read magic number
         f.read(4)
-        num_img = int.from_bytes(f.read(4))
-        num_rows = int.from_bytes(f.read(4))
-        num_cols = int.from_bytes(f.read(4))
+        num_img = int.from_bytes(f.read(4), 'big')
+        num_rows = int.from_bytes(f.read(4), 'big')
+        num_cols = int.from_bytes(f.read(4), 'big')
 
         data = f.read()
         out = np.ndarray((num_img, num_rows, num_cols), np.uint8, data)
@@ -35,7 +35,7 @@ def parse_mnist_labels(idx_file_path: str) -> np.ndarray:
         
         # read magic number
         f.read(4)
-        num_item = int.from_bytes(f.read(4))
+        num_item = int.from_bytes(f.read(4), 'big')
 
         data = f.read()
         out = np.ndarray((num_item, 1), np.uint8, data)
@@ -45,9 +45,10 @@ def plot_image(img: np.ndarray) -> plt.figure:
     assert len(img.shape) == 2, "input must be 2-dimensional (single image)"
 
     fig, ax = plt.subplots()
-    ax.imshow(img)
+    plt.axis("off")
+    ax.imshow(img, cmap="gray")
     plt.show()
-    return fig
+    return fig, ax
 
 def softmax(x: np.ndarray) -> np.ndarray:
     exp_element=np.exp(x-x.max())
@@ -64,6 +65,7 @@ class FeedForward:
 
     def __call__(self, x: np.ndarray) -> np.ndarray:
 
+        assert len(x.shape()) <= 2, "Input can only be a maximum of 2 dimensions"
         # multiplication witht matrix 1 (weights) -> add bias
         xl1 = x @ self.layer_1_matrix + self.bias_1
         # activation function (np.tanh) anwenden

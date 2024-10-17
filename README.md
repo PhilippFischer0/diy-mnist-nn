@@ -17,7 +17,7 @@ And unzip them with:
 gunzip *
 ```
 
-in the directory of the files.
+in the directory of the files and rename to .idx
 
 Arm git filter to remove notebook output:
 
