@@ -15,35 +15,31 @@ def parse_mnist_data(
     test_samples = parse_mnist_images(idx_file_test_samples)
     test_labels = parse_mnist_labels(idx_file_test_labels)
 
-    return tuple[training_samples, training_labels, test_samples, test_labels]
+    return tuple(training_samples, training_labels, test_samples, test_labels)
 
 def parse_mnist_images(idx_file_path: str) -> np.ndarray:
-    f = open(idx_file_path, 'rb')
+    with open(idx_file_path, 'rb') as f:
 
-    magic_num = int.from_bytes(f.read(2), 'big')
-    ftype = int.from_bytes(f.read(1), 'big')
-    num_dim = int.from_bytes(f.read(1), 'big')
-    num_img = int.from_bytes(f.read(4), 'big')
-    num_rows = int.from_bytes(f.read(4), 'big')
-    num_cols = int.from_bytes(f.read(4), 'big')
+        # read magic number
+        f.read(4)
+        num_img = int.from_bytes(f.read(4))
+        num_rows = int.from_bytes(f.read(4))
+        num_cols = int.from_bytes(f.read(4))
 
-    data = f.read()
-    out = np.ndarray((num_img, num_rows, num_cols), np.uint8, data)
-    print(out.shape)
-    return out
+        data = f.read()
+        out = np.ndarray((num_img, num_rows, num_cols), np.uint8, data)
+        return out
 
 def parse_mnist_labels(idx_file_path: str) -> np.ndarray:
-    f = open(idx_file_path, 'rb')
-    
-    magic_num = int.from_bytes(f.read(2), 'big')
-    ftype = int.from_bytes(f.read(1), 'big')
-    num_dim = int.from_bytes(f.read(1), 'big')
-    num_item = int.from_bytes(f.read(4), 'big')
+    with open(idx_file_path, 'rb') as f:
+        
+        # read magic number
+        f.read(4)
+        num_item = int.from_bytes(f.read(4))
 
-    data = f.read()
-    out = np.ndarray((num_item, 1), np.uint8, data)
-    print(out.shape)
-    return out
+        data = f.read()
+        out = np.ndarray((num_item, 1), np.uint8, data)
+        return out
 
 def plot_image(img: np.ndarray) -> plt.figure:
     assert len(img.shape) == 2, "input must be 2-dimensional (single image)"
@@ -51,6 +47,11 @@ def plot_image(img: np.ndarray) -> plt.figure:
     fig, ax = plt.subplots()
     ax.imshow(img)
     plt.show()
+    return fig
+
+def softmax(x: np.ndarray) -> np.ndarray:
+    exp_element=np.exp(x-x.max())
+    return exp_element/np.sum(exp_element,axis=0)
 
 class FeedForward:
     def __init__(self, fan_in: int, num_hidden: int, fan_out: int) -> None:
@@ -61,9 +62,6 @@ class FeedForward:
         self.bias_1 = np.random.uniform(-1, 1, num_hidden).astype(np.float32)
         self.bias_2 = np.random.uniform(-1, 1, fan_out).astype(np.float32)
 
-    def softmax(self, x: np.ndarray) -> np.ndarray:
-        return np.exp(x)/np.sum(np.exp(x))
-
     def __call__(self, x: np.ndarray) -> np.ndarray:
 
         # multiplication witht matrix 1 (weights) -> add bias
@@ -73,9 +71,6 @@ class FeedForward:
         # multiplikation mit matrix 2 (weights) -> bias addieren
         xl2 = xl1a @ self.layer_2_matrix + self.bias_2
         # normalisierung mit softmax
-        xl2n = self.softmax(xl2)
+        out = softmax(xl2)
 
-        return xl2n
-
-def foo():
-    print("hallo blub")
+        return out

@@ -1,5 +1,5 @@
 /scratchpad.ipynb
-/notebook.ipynb
 /data/*
 __pycache__
 .pytest_cache
+notebook.ipynb
