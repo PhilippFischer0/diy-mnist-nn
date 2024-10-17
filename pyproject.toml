@@ -4,11 +4,11 @@ version = "0.1.0"
 description = ""
 authors = ["Philipp Fischer <philipp.fischer@js-soft.com>"]
 readme = "README.md"
+packages = [{ include = "src" }, ]
 
 [tool.poetry.dependencies]
 python = "^3.10"
 numpy = "^2.1.2"
-jupyter = "^1.1.1"
 matplotlib = "^3.9.2"
 pytest = "^8.3.3"
 
