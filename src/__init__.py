@@ -81,7 +81,7 @@ class FeedForward:
 
         assert (
             x.shape[1] == self.layer_1_matrix.shape[0]
-        ), "Input features do not match the number of fan_in"
+        ), "Input dimensions dont match with firt layer"
 
         # multiplication witht matrix 1 (weights) -> add bias
         xl1 = x @ self.layer_1_matrix + self.bias_1
