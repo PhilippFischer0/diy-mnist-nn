@@ -1,8 +1,6 @@
 /scratchpad.ipynb
 /data/*
 __pycache__
-.pytest_cache
-.vscode
-notebook.ipynb
-notes.txt
-softmax_derivative.ipynb
+/.pytest_cache/
+/.vscode/
+
