@@ -18,7 +18,5 @@ def test_2dim_forward():
     ff = src.FeedForward(20, 1024, 5)
     out = ff(x)
 
-    print(out)
-    print(sum(out[0, :]), sum(out[1, :]), sum(out[2, :]))
     assert out.shape == (3, 5)
     assert np.isclose(sum(sum(out)), 3)
