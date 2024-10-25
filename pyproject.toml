@@ -18,6 +18,7 @@ pandas = "^2.2.3"
 ipykernel = "^6.29.5"
 nbconvert = "^7.16.4"
 jupyter = "^1.1.1"
+nbstripout = "^0.7.1"
 
 [tool.black]
 line_length = 88
