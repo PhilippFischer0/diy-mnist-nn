@@ -1,6 +1,5 @@
-[filter "strip-notebook-output"]
- 	# clean = "jq '.cells[].outputs = [] | .cells[].execution_count = null | .'"
-	# smudge = "cat"
-	clean = "jupyter nbconvert --ClearOutputPreprocessor.enabled=True --ClearMetadataPreprocessor.enabled=True --to=notebook --stdin --stdout --log-level=ERROR"
-	smudge = "jupyter nbconvert --ClearOutputPreprocessor.enabled=True --ClearMetadataPreprocessor.enabled=True --to=notebook --stdin --stdout --log-level=ERROR"
-	required
+[filter "nbstripout"]
+	clean = \"/home/phfischer/.cache/pypoetry/virtualenvs/diy-mnist-nn-ZXZBkNkJ-py3.10/bin/python\" -m nbstripout
+	smudge = cat
+[diff "ipynb"]
+	textconv = \"/home/phfischer/.cache/pypoetry/virtualenvs/diy-mnist-nn-ZXZBkNkJ-py3.10/bin/python\" -m nbstripout -t
