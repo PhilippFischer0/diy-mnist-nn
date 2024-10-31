@@ -22,7 +22,7 @@ ipywidgets = "^8.1.5"
 notebook = "^7.2.2"
 
 [tool.black]
-line_length = 88
+line-length = 88
 
 [build-system]
 requires = ["poetry-core"]
