@@ -1,5 +1,5 @@
 [filter "nbstripout"]
-	clean = python -m nbstripout
+	clean = \"/home/phfischer/.cache/pypoetry/virtualenvs/diy-mnist-nn-ZXZBkNkJ-py3.10/bin/python\" -m nbstripout
 	smudge = cat
 [diff "ipynb"]
-	textconv = python -m nbstripout -t
+	textconv = \"/home/phfischer/.cache/pypoetry/virtualenvs/diy-mnist-nn-ZXZBkNkJ-py3.10/bin/python\" -m nbstripout -t
