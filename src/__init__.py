@@ -1,5 +1,59 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from PIL import Image
+
+
+def binary_parse_mnist_data(
+    idx_file_training_samples: str,
+    idx_file_training_labels: str,
+    idx_file_test_samples: str,
+    idx_file_test_labels: str,
+    number_1: int,
+    number_2: int,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    # get the data
+    training_samples, training_labels, test_samples, test_labels = parse_mnist_data(
+        idx_file_training_samples,
+        idx_file_training_labels,
+        idx_file_test_samples,
+        idx_file_test_labels,
+    )
+    # filter only two numbers with a mask
+    training_mask = (training_labels.flatten() == number_1) | (
+        training_labels.flatten() == number_2
+    )
+    filtered_training_labels = training_labels[training_mask]
+    filtered_training_samples = training_samples[training_mask]
+
+    test_mask = (test_labels.flatten() == number_1) | (
+        test_labels.flatten() == number_2
+    )
+    filtered_test_labels = test_labels[test_mask]
+    filtered_test_samples = test_samples[test_mask]
+
+    # downscale the samples to lessen the computational effort
+    downscaled_training_samples = np.array(
+        [
+            Image.fromarray(train_img).resize((10, 10), Image.Resampling.LANCZOS)
+            for train_img in filtered_training_samples
+        ]
+    )
+    downscaled_testing_samples = np.array(
+        [
+            Image.fromarray(test_img).resize((10, 10), Image.Resampling.LANCZOS)
+            for test_img in filtered_test_samples
+        ]
+    )
+
+    downscaled_training_samples = downscaled_training_samples / 255
+    downscaled_testing_samples = downscaled_testing_samples / 255
+
+    return (
+        downscaled_training_samples,
+        filtered_training_labels,
+        downscaled_testing_samples,
+        filtered_test_labels,
+    )
 
 
 # from https://yann.lecun.com/exdb/mnist/
@@ -54,67 +108,3 @@ def plot_image(img: np.ndarray) -> plt.Figure:
 
     plt.close()
     return fig
-
-
-def softmax(x: np.ndarray) -> np.ndarray:
-    # numerische Stabilität um overflow zu vermeiden
-    exp_element = np.exp(x - np.max(x, axis=1, keepdims=True))
-    return exp_element / np.sum(exp_element, axis=1, keepdims=True)
-
-
-def softmax_deriv(x: np.ndarray) -> np.ndarray:
-    exp_element = np.exp(x - np.max(x, axis=1, keepdims=True))
-    return (
-        exp_element
-        / np.sum(exp_element, axis=1)
-        * (1 - exp_element / np.sum(exp_element, axis=1))
-    )
-
-
-def tanh_deriv(x: np.ndarray) -> np.ndarray:
-    return 1.0 - np.pow(np.tanh(x), 2)
-
-
-def get_loss(y_pred: np.ndarray, y: np.ndarray) -> float:
-    # cross entropy
-    loss = 0
-
-    for i in range(len(y_pred)):
-        # calculate loss for each predicted value and add up
-        loss += -1 * y[i] * np.log(y_pred[i])
-    return loss
-
-
-class FeedForward:
-
-    def __init__(self, fan_in: int, num_hidden: int, fan_out: int) -> None:
-        # define matrices
-        self.layer_1_matrix = np.random.uniform(-1, 1, (fan_in, num_hidden)).astype(
-            np.float32
-        )
-        self.layer_2_matrix = np.random.uniform(-1, 1, (num_hidden, fan_out)).astype(
-            np.float32
-        )
-        # define bias
-        self.bias_1 = np.random.uniform(-1, 1, num_hidden).astype(np.float32)
-        self.bias_2 = np.random.uniform(-1, 1, fan_out).astype(np.float32)
-
-    def __call__(self, x: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-        # Ensure the input is 2-dimensional
-        if x.ndim == 1:
-            x = x.reshape(1, -1)
-
-        assert (
-            x.shape[1] == self.layer_1_matrix.shape[0]
-        ), "Input dimensions dont match with first layer"
-
-        # multiplication witht matrix 1 (weights) -> add bias
-        x = x @ self.layer_1_matrix + self.bias_1
-        # activation function (np.tanh) anwenden
-        x = np.tanh(x)
-        # multiplikation mit matrix 2 (weights) -> bias addieren
-        x = self.x @ self.layer_2_matrix + self.bias_2
-        # normalisierung mit softmax
-        x = softmax(x)
-
-        return x
