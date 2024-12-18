@@ -336,7 +336,7 @@ class MLP:
         with open(file_path, "rb") as file:
             param = pickle.load(file)
 
-        for (_, param_value), p in zip(param, self.parameters):
+        for (_, param_value), p in zip(param, self.parameters()):
             p.value = param_value
 
     def epoch_loss_and_accuracy(
