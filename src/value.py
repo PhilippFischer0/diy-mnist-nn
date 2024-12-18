@@ -21,7 +21,8 @@ class Value:
     def __repr__(self) -> str:
         return f"{self.name}, value={self.value}, grad={self.grad}"
 
-    # Addition
+    # arithmetic operators
+    # addition (v+n)
     def __add__(self, other: Value) -> Value:
         if not isinstance(other, Value):
             other = Value(other)
@@ -34,6 +35,7 @@ class Value:
         result._backward = _backward
         return result
 
+    # addition (v+=n)
     def __iadd__(self, other: Value) -> Value:
         if not isinstance(other, Value):
             other = Value(other)
@@ -48,10 +50,11 @@ class Value:
         result._backward = _backward
         return result
 
+    # addition (n+v)
     def __radd__(self, other):
         return self + other
 
-    # Subtraktion
+    # subtraction (v-n)
     def __sub__(self, other: Value) -> Value:
         if not isinstance(other, Value):
             other = Value(other)
@@ -64,12 +67,13 @@ class Value:
         result._backward = _backward
         return result
 
+    # subtraction (n-v)
     def __rsub__(self, other) -> Value:
         if not isinstance(other, (int, float)):
             raise NotImplementedError()
         return Value(other) - self
 
-    # Multiplikation
+    # multiplication (v*n)
     def __mul__(self, other: Value) -> Value:
         if not isinstance(other, Value):
             other = Value(other)
@@ -82,10 +86,11 @@ class Value:
         result._backward = _backward
         return result
 
+    # multiplication (n*v)
     def __rmul__(self, other) -> Value:
         return self * other
 
-    # Floatingpointdivision
+    # division (v/n)
     def __truediv__(self, other: Value) -> Value:
         if not isinstance(other, Value):
             other = Value(other)
@@ -98,12 +103,13 @@ class Value:
         result._backward = _backward
         return result
 
+    # division (n/v)
     def __rtruediv__(self, other) -> Value:
         if not isinstance(other, (int, float)):
             raise NotImplementedError()
         return Value(other) / self
 
-    # Potenzierung (x**n)
+    # potentiation (v**n)
     def __pow__(self, other: Value) -> Value:
         if not isinstance(other, Value):
             other = Value(other)
@@ -111,14 +117,12 @@ class Value:
 
         def _backward():
             self.grad += other.value * self.value ** (other.value - 1.0) * result.grad
-            # assert self.value >= 0, "cannot compute log with negative base
             other.grad += self.value**other.value * np.log(self.value) * result.grad
-            # print(self.grad, other.grad)
 
         result._backward = _backward
         return result
 
-    # Exponentierung (e**x)
+    # exponentiation (e**v)
     def exp(self) -> Value:
         result = Value(np.exp(self.value), (self,), name="exp", operand="e^")
 
@@ -128,6 +132,7 @@ class Value:
         result._backward = _backward
         return result
 
+    # logarithm
     def log(self) -> Value:
         result_value = np.log(self.value)
         result = Value(result_value, (self,), name="log")
@@ -141,12 +146,23 @@ class Value:
         result._backward = _backward
         return result
 
-    # Negation
+    # negation
     def __neg__(self) -> Value:
         result = Value(-self.value, (self,), name="neg", operand="-")
 
         def _backward():
             self.grad += -result.grad
+
+        result._backward = _backward
+        return result
+
+    # activation functions
+    def relu(self) -> Value:
+        result_value = self.value if self.value > 0 else 0.0
+        result = Value(result_value, (self,), name="ReLU")
+
+        def _backward():
+            self.grad += self.value * result.grad if self.value > 0 else 0.0
 
         result._backward = _backward
         return result
@@ -161,40 +177,33 @@ class Value:
         result._backward = _backward
         return result
 
-    # how to fix backward with ne values
-    def relu(self) -> Value:
-        result_value = self.value if self.value > 0 else 0.0
-        result = Value(result_value, (self,), name="ReLU")
-
-        def _backward():
-            self.grad += self.value * result.grad if self.value > 0 else 0.0
-
-        result._backward = _backward
-        return result
-
-    # Vergleichsoperatoren <, >, >=, <=
+    # comparison operators
+    # less than <
     def __lt__(self, other: Value) -> bool:
         if not isinstance(other, Value):
             other = Value(other)
         return self.value < other.value
 
+    # greater than >
     def __gt__(self, other: Value) -> bool:
         if not isinstance(other, Value):
             other = Value(other)
         return self.value > other.value
 
+    # less equal <=
     def __le__(self, other: Value) -> bool:
         if not isinstance(other, Value):
             other = Value(other)
         return self.value <= other.value
 
+    # grater equal >=
     def __ge__(self, other: Value) -> bool:
         if not isinstance(other, Value):
             other = Value(other)
         return self.value >= other.value
 
     def backward(self) -> None:
-        # iterate through the graph, calculate gradients and update nodes
+        # iterate backwards through the graph, calculate gradients and update nodes
         topo_sorted_nodes = []
         visited = set()
 
@@ -212,8 +221,8 @@ class Value:
         for node in reversed(topo_sorted_nodes):
             node._backward()
 
+    # build graph representatio of calculations
     def plot_graph(self):
-        # "graph visualization python", graphviz
         dot = graphviz.Digraph(format="svg", graph_attr={"rankdir": "LR"})
 
         def add_nodes(dot: graphviz.Digraph, node: Value):
@@ -227,7 +236,7 @@ class Value:
                 shape="record",
                 color=(
                     "lightgreen" if node.ancestors == () and node.name != "" else None
-                ),  # check if input
+                ),  # check for input
                 style="filled",
             )
 
@@ -267,15 +276,17 @@ class Neuron:
         self.bias = Value(0.0, name="bias")
 
     def __call__(self, x: np.ndarray) -> Value:
-        # implement f(x) = activation (bias + sum(weights * values))
+        # f(x) = activation (bias + sum(weights * values))
         if isinstance(x, np.ndarray):
             x = x.flatten()
         res = sum(w_i * x_i for w_i, x_i in zip(self.weights, x)) + self.bias
         return res
 
+    # return the parameters of each Neuron
     def parameters(self) -> list[Value]:
         return self.weights + [self.bias]
 
+    # return the number of parameters for a single Neuron
     def param_count(self) -> int:
         return len(self.weights + [self.bias])
 
@@ -296,6 +307,7 @@ class Layer:
             return [o.relu() for o in outputs]
         return [o.sigmoid() for o in outputs]
 
+    # return all parameters for every single Neuron inside of a Layer
     def parameters(self) -> list:
         params = [p for n in self.neurons for p in n.parameters()]
         return params
@@ -313,18 +325,10 @@ class MLP:
             x = layer(x)
         return x[0]
 
+    # return all parameters of every single Neuron in every single Layer of a MLP
     def parameters(self) -> list:
         params = [p for l in self.layers for p in l.parameters()]
         return params
-
-    @staticmethod
-    def cross_entropy_loss(y_pred: Value, y_gt) -> Value:
-        eps = 1e-15
-
-        if y_gt == 0:
-            return -((1 - y_pred + eps).log())
-        else:
-            return -((y_pred + eps).log())
 
     def save_params(self, file_path: str) -> None:
         params = [(p.name, p.value) for p in self.parameters()]
@@ -338,6 +342,16 @@ class MLP:
 
         for (_, param_value), p in zip(param, self.parameters()):
             p.value = param_value
+
+    @staticmethod
+    # return the loss of a prediction in reference to the correct label
+    def cross_entropy_loss(y_pred: Value, y_gt) -> Value:
+        eps = 1e-15
+
+        if y_gt == 0:
+            return -((1 - y_pred + eps).log())
+        else:
+            return -((y_pred + eps).log())
 
     def epoch_loss_and_accuracy(
         self, images: np.ndarray, labels: np.ndarray

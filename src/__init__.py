@@ -6,6 +6,12 @@ from PIL import Image
 def get_number_of_samples(
     images: np.ndarray, labels: np.ndarray, number_of_images_per_class: int
 ) -> tuple[np.ndarray, np.ndarray]:
+    """
+    :params np.ndarray images: array of multiple images
+    :params np.ndarray labels: array of the labels for the images
+    :params int number_of_images_per_class: number of images that should be rreturned for each class
+    :returns: Tuple of arrays with 2*number_of_images_per_class images and labels that are equally distributed
+    """
     sampled_images = []
     sampled_labels = []
 
@@ -40,6 +46,15 @@ def binary_parse_mnist_data(
     number_1: int,
     number_2: int,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """
+    :params str idx_file_training_samples: file path to the training samples
+    :params str idx_file_training_labels: file path to the training labels
+    :params str idx_file_test_samples: file path to the testing samples
+    :params str idx_file_test_labels: file path to the testing labels
+    :params int number_1: first number between 0-9 that should be loaded from the MNIST dataset
+    :params int number_2: second number between 0-9 that should be loaded from the MNIST dataset
+    :returns: tuple of arrays with only the given numbers present
+    """
     # get the data
     training_samples, training_labels, test_samples, test_labels = parse_mnist_data(
         idx_file_training_samples,
@@ -93,6 +108,13 @@ def parse_mnist_data(
     idx_file_test_samples: str,
     idx_file_test_labels: str,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """
+    :params str idx_file_training_samples: file path to the training samples
+    :params str idx_file_training_labels: file path to the training labels
+    :params str idx_file_test_samples: file path to the testing samples
+    :params str idx_file_test_labels: file path to the testing labels
+    :returns: tuple of arrays with the MNIST dataset
+    """
 
     training_samples = parse_mnist_images(idx_file_training_samples)
     training_labels = parse_mnist_labels(idx_file_training_labels)
@@ -104,6 +126,10 @@ def parse_mnist_data(
 
 
 def parse_mnist_images(idx_file_path: str) -> np.ndarray:
+    """
+    :params str idx_file_path: path to the image file
+    :returns: array of images
+    """
     with open(idx_file_path, "rb") as f:
 
         # read magic number
@@ -118,6 +144,10 @@ def parse_mnist_images(idx_file_path: str) -> np.ndarray:
 
 
 def parse_mnist_labels(idx_file_path: str) -> np.ndarray:
+    """
+    :params str idx_file_path: path to the label file
+    :returns: array of labels
+    """
     with open(idx_file_path, "rb") as f:
 
         # read magic number
