@@ -3,6 +3,35 @@ import matplotlib.pyplot as plt
 from PIL import Image
 
 
+def get_number_of_samples(
+    images: np.ndarray, labels: np.ndarray, number_of_images_per_class: int
+) -> tuple[np.ndarray, np.ndarray]:
+    sampled_images = []
+    sampled_labels = []
+
+    labels = labels.flatten()
+    unique_labels = np.unique(labels)
+
+    for label in unique_labels:
+        img_label = images[labels == label]
+        lab_label = labels[labels == label]
+
+        if len(img_label) >= number_of_images_per_class:
+            idx = np.random.choice(
+                len(img_label), number_of_images_per_class, replace=False
+            )
+            sampled_images.append(img_label[idx])
+            sampled_labels.append([[int(lab)] for lab in lab_label[idx]])
+        else:
+            raise ValueError(
+                f"Not enough Images of label {label} to equally distribute {number_of_images_per_class} images"
+            )
+
+    sampled_images = np.concatenate(sampled_images, axis=0)
+    sampled_labels = np.concatenate(sampled_labels, axis=0)
+    return sampled_images, sampled_labels
+
+
 def binary_parse_mnist_data(
     idx_file_training_samples: str,
     idx_file_training_labels: str,
@@ -45,6 +74,7 @@ def binary_parse_mnist_data(
         ]
     )
 
+    # Normalisierung
     downscaled_training_samples = downscaled_training_samples / 255
     downscaled_testing_samples = downscaled_testing_samples / 255
 
