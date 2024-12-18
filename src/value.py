@@ -3,6 +3,7 @@ import numpy as np
 import graphviz
 from IPython.display import display
 from typing import Literal
+import pickle
 
 
 class Value:
@@ -192,14 +193,6 @@ class Value:
             other = Value(other)
         return self.value >= other.value
 
-    def cross_entropy_loss(y_pred: Value, y_gt) -> Value:
-        eps = 1e-15
-
-        if y_gt == 0:
-            return -((1 - y_pred + eps).log())
-        else:
-            return -((y_pred + eps).log())
-
     def backward(self) -> None:
         # iterate through the graph, calculate gradients and update nodes
         topo_sorted_nodes = []
@@ -268,7 +261,9 @@ np.random.seed(0xDEADBEEF)
 
 class Neuron:
     def __init__(self, num_inputs: int) -> None:
-        self.weights = [Value(np.random.randn()) for _ in range(num_inputs)]
+        self.weights = [
+            Value(np.random.randn(), name="weight") for _ in range(num_inputs)
+        ]
         self.bias = Value(0.0, name="bias")
 
     def __call__(self, x: np.ndarray) -> Value:
@@ -321,6 +316,28 @@ class MLP:
     def parameters(self) -> list:
         params = [p for l in self.layers for p in l.parameters()]
         return params
+
+    @staticmethod
+    def cross_entropy_loss(y_pred: Value, y_gt) -> Value:
+        eps = 1e-15
+
+        if y_gt == 0:
+            return -((1 - y_pred + eps).log())
+        else:
+            return -((y_pred + eps).log())
+
+    def save_params(self, file_path: str) -> None:
+        params = [(p.name, p.value) for p in self.parameters()]
+
+        with open(file_path, "wb") as file:
+            pickle.dump(params, file)
+
+    def load_params(self, file_path: str) -> None:
+        with open(file_path, "rb") as file:
+            param = pickle.load(file)
+
+        for (_, param_value), p in zip(param, self.parameters):
+            p.value = param_value
 
     def epoch_loss_and_accuracy(
         self, images: np.ndarray, labels: np.ndarray
