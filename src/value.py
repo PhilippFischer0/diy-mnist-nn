@@ -134,14 +134,12 @@ class Value:
 
     # logarithm
     def log(self) -> Value:
-        result_value = np.log(self.value)
-        result = Value(result_value, (self,), name="log")
+        if self.value <= 0:
+            raise ValueError("Logarithm of non-positive value isn't defined")
+        result = Value(np.log(self.value), (self,), name="log")
 
         def _backward():
-            if self.value > 0:
-                self.grad += (1 / self.value) * result.grad
-            else:
-                self.grad += 0.0  # Gradient is zero for non-positive input
+            self.grad += (1 / self.value) * result.grad
 
         result._backward = _backward
         return result
@@ -159,7 +157,7 @@ class Value:
     # activation functions
     def relu(self) -> Value:
         result_value = self.value if self.value > 0 else 0.0
-        result = Value(result_value, (self,), name="ReLU")
+        result = Value(result_value, (self,), name="relu")
 
         def _backward():
             self.grad += self.value * result.grad if self.value > 0 else 0.0
@@ -179,25 +177,25 @@ class Value:
 
     # comparison operators
     # less than <
-    def __lt__(self, other: Value) -> bool:
+    def __lt__(self, other: Value | int | float) -> bool:
         if not isinstance(other, Value):
             other = Value(other)
         return self.value < other.value
 
     # greater than >
-    def __gt__(self, other: Value) -> bool:
+    def __gt__(self, other: Value | int | float) -> bool:
         if not isinstance(other, Value):
             other = Value(other)
         return self.value > other.value
 
     # less equal <=
-    def __le__(self, other: Value) -> bool:
+    def __le__(self, other: Value | int | float) -> bool:
         if not isinstance(other, Value):
             other = Value(other)
         return self.value <= other.value
 
     # grater equal >=
-    def __ge__(self, other: Value) -> bool:
+    def __ge__(self, other: Value | int | float) -> bool:
         if not isinstance(other, Value):
             other = Value(other)
         return self.value >= other.value
@@ -265,9 +263,6 @@ class Value:
         display(dot)
 
 
-np.random.seed(0xDEADBEEF)
-
-
 class Neuron:
     def __init__(self, num_inputs: int) -> None:
         self.weights = [
@@ -276,18 +271,21 @@ class Neuron:
         self.bias = Value(0.0, name="bias")
 
     def __call__(self, x: np.ndarray) -> Value:
-        # f(x) = activation (bias + sum(weights * values))
         if isinstance(x, np.ndarray):
             x = x.flatten()
         res = sum(w_i * x_i for w_i, x_i in zip(self.weights, x)) + self.bias
         return res
 
-    # return the parameters of each Neuron
     def parameters(self) -> list[Value]:
+        """
+        return the parameters of each Neuron
+        """
         return self.weights + [self.bias]
 
-    # return the number of parameters for a single Neuron
     def param_count(self) -> int:
+        """
+        return the number of parameters for a single Neuron
+        """
         return len(self.weights + [self.bias])
 
 
@@ -307,17 +305,20 @@ class Layer:
             return [o.relu() for o in outputs]
         return [o.sigmoid() for o in outputs]
 
-    # return all parameters for every single Neuron inside of a Layer
     def parameters(self) -> list:
+        """
+        return all parameters for every single Neuron inside of a Layer
+        """
         params = [p for n in self.neurons for p in n.parameters()]
         return params
 
 
 class MLP:
     def __init__(self, num_inputs: int, num_hidden: list[int], num_out: int) -> None:
-        size = [num_inputs] + num_hidden
+        layer_sizes = [num_inputs] + num_hidden
         self.layers = [
-            Layer(size[i], size[i + 1], "relu") for i in range(len(num_hidden))
+            Layer(layer_sizes[i], layer_sizes[i + 1], "relu")
+            for i in range(len(num_hidden))
         ] + [Layer(num_hidden[-1], num_out, "sigmoid")]
 
     def __call__(self, x: np.ndarray) -> Value:
@@ -325,8 +326,10 @@ class MLP:
             x = layer(x)
         return x[0]
 
-    # return all parameters of every single Neuron in every single Layer of a MLP
     def parameters(self) -> list:
+        """
+        return all parameters of every single Neuron in every single Layer of a MLP
+        """
         params = [p for l in self.layers for p in l.parameters()]
         return params
 
@@ -338,15 +341,19 @@ class MLP:
 
     def load_params(self, file_path: str) -> None:
         with open(file_path, "rb") as file:
-            param = pickle.load(file)
+            params = pickle.load(file)
 
-        for (_, param_value), p in zip(param, self.parameters()):
+        for (_, param_value), p in zip(params, self.parameters()):
             p.value = param_value
 
     @staticmethod
-    # return the loss of a prediction in reference to the correct label
     def cross_entropy_loss(y_pred: Value, y_gt) -> Value:
+        """
+        return the loss of a prediction in reference to the correct label
+        """
         eps = 1e-15
+        if y_pred + eps > 1:
+            y_pred = 1 - eps
 
         if y_gt == 0:
             return -((1 - y_pred + eps).log())
@@ -361,9 +368,9 @@ class MLP:
         for image, label in zip(images, labels):
             pred = self(image)
 
-            loss += Value.cross_entropy_loss(pred, label)
+            loss += self.cross_entropy_loss(pred, label)
 
             if np.fabs(pred.value - label.item()) < 0.5:
-                correct_pred += 1.0
+                correct_pred += 1
 
         return loss / len(images), correct_pred / len(images)
