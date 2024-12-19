@@ -8,6 +8,8 @@ packages = [{ include = "src" }, ]
 
 [tool.poetry.dependencies]
 python = "^3.10"
+
+[tool.poetry.group.dev.dependencies]
 numpy = "^2.1.2"
 matplotlib = "^3.9.2"
 pytest = "^8.3.3"
