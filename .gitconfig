@@ -1,5 +1,4 @@
 [filter "nbstripout"]
 	clean = poetry run python -m nbstripout
-	smudge = cat
 [diff "ipynb"]
 	textconv = poetry run python -m nbstripout -t
