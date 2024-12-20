@@ -353,7 +353,8 @@ class MLP:
         """
         eps = 1e-15
         if y_pred + eps > 1:
-            y_pred = 1 - eps
+            overshoot = y_pred + eps - 1
+            y_pred = y_pred - overshoot - eps
 
         if y_gt == 0:
             return -((1 - y_pred + eps).log())
@@ -363,14 +364,22 @@ class MLP:
     def epoch_loss_and_accuracy(
         self, images: np.ndarray, labels: np.ndarray
     ) -> tuple[float, float]:
+        # usually the model isn't passed to the loss function, in this case it's a dirty implementation
         loss = 0
         correct_pred = 0
+        threshold = 0.5
         for image, label in zip(images, labels):
-            pred = self(image)
+            y_pred = self(image)
 
-            loss += self.cross_entropy_loss(pred, label)
+            loss += self.cross_entropy_loss(y_pred, label)
 
-            if np.fabs(pred.value - label.item()) < 0.5:
-                correct_pred += 1
+            if y_pred.value < threshold:
+                pred = 0
+                if label.item() == pred:
+                    correct_pred += 1
+            else:
+                pred = 1
+                if label.item() == pred:
+                    correct_pred += 1
 
         return loss / len(images), correct_pred / len(images)
