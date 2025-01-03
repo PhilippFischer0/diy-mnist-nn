@@ -101,6 +101,26 @@ def binary_parse_mnist_data(
     )
 
 
+def normalize_mnist_data(
+    idx_file_training_samples: str,
+    idx_file_training_labels: str,
+    idx_file_test_samples: str,
+    idx_file_test_labels: str,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Returns the MNIST dataset as normalized arrays
+    """
+    training_samples, training_labels, test_samples, test_labels = parse_mnist_data(
+        idx_file_training_samples,
+        idx_file_training_labels,
+        idx_file_test_samples,
+        idx_file_test_labels,
+    )
+    training_samples = training_samples / 255
+    test_samples = test_samples / 255
+    return training_samples, training_labels, test_samples, test_labels
+
+
 # from https://yann.lecun.com/exdb/mnist/
 def parse_mnist_data(
     idx_file_training_samples: str,
