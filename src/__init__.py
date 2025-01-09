@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
+import torch
+import torch.nn as nn
 
 
 def get_number_of_samples(
@@ -177,6 +179,18 @@ def parse_mnist_labels(idx_file_path: str) -> np.ndarray:
         data = f.read()
         out = np.ndarray((num_item, 1), np.uint8, data)
         return out
+
+
+def get_accuracy(
+    model: nn.Module, samples: torch.Tensor, labels: torch.Tensor
+) -> float:
+    with torch.no_grad():
+        correct = 0
+        for i in range(len(samples)):
+            y_hat = model(samples[i].flatten())
+            correct += (torch.argmax(y_hat) == labels[i]).item()
+
+        return correct / len(samples)
 
 
 def plot_image(img: np.ndarray) -> plt.Figure:
