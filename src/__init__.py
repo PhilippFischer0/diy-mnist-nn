@@ -119,12 +119,8 @@ def normalize_mnist_data(
     )
     training_samples = training_samples / 255
     test_samples = test_samples / 255
-    return (
-        torch.from_numpy(training_samples).float(),
-        torch.from_numpy(training_labels),
-        torch.from_numpy(test_samples).float(),
-        torch.from_numpy(test_labels),
-    )
+
+    return training_samples, training_labels, test_samples, test_labels
 
 
 # from https://yann.lecun.com/exdb/mnist/
