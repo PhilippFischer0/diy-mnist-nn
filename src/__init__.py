@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
+import torch
 
 
 def get_number_of_samples(
@@ -106,7 +107,7 @@ def normalize_mnist_data(
     idx_file_training_labels: str,
     idx_file_test_samples: str,
     idx_file_test_labels: str,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     """
     Returns the MNIST dataset as normalized arrays
     """
@@ -118,7 +119,12 @@ def normalize_mnist_data(
     )
     training_samples = training_samples / 255
     test_samples = test_samples / 255
-    return training_samples, training_labels, test_samples, test_labels
+    return (
+        torch.from_numpy(training_samples).float(),
+        torch.from_numpy(training_labels),
+        torch.from_numpy(test_samples).float(),
+        torch.from_numpy(test_labels),
+    )
 
 
 # from https://yann.lecun.com/exdb/mnist/
