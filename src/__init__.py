@@ -189,7 +189,7 @@ def get_accuracy(
         y_hat = model(samples.flatten(1))
         correct = sum(torch.argmax(y_hat, dim=1) == labels)
 
-        return (correct / len(samples)).item()
+        return (correct / len(samples))
 
 
 def plot_image(img: np.ndarray) -> plt.Figure:
