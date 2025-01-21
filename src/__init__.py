@@ -185,12 +185,11 @@ def get_accuracy(
     model: nn.Module, samples: torch.Tensor, labels: torch.Tensor
 ) -> float:
     with torch.no_grad():
-        correct = 0
-        for i in range(len(samples)):
-            y_hat = model(samples[i].flatten())
-            correct += (torch.argmax(y_hat) == labels[i]).item()
+        labels = labels.flatten()
+        y_hat = model(samples.flatten(1))
+        correct = sum(torch.argmax(y_hat, dim=1) == labels)
 
-        return correct / len(samples)
+        return (correct / len(samples)).item()
 
 
 def plot_image(img: np.ndarray) -> plt.Figure:
