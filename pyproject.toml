@@ -6,14 +6,9 @@ authors = ["Philipp Fischer <philipp.fischer@js-soft.com>"]
 readme = "README.md"
 packages = [{ include = "src" }, ]
 
-[[tool.poetry.source]]
-name = "torch"
-url = "https://download.pytorch.org/whl/cpu"
-priority = 'secondary'
-
 [tool.poetry.dependencies]
 python = "^3.10"
-torch = "^2.5.1+cpu"
+torch = "^2.5.1"
 
 [tool.poetry.group.dev.dependencies]
 numpy = "^2.1.2"
