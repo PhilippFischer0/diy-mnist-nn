@@ -7,11 +7,12 @@ Download the files via:
 ```bash
 mkdir data
 cd data
-curl -Lso "./data/train_img.gz" https://storage.googleapis.com/cvdf-datasets/mnist/train-images-idx3-ubyte.gz
-curl -Lso "./data/train_label.gz" https://storage.googleapis.com/cvdf-datasets/mnist/train-labels-idx1-ubyte.gz
-curl -Lso "./data/test_img.gz" https://storage.googleapis.com/cvdf-datasets/mnist/t10k-images-idx3-ubyte.gz
-curl -Lso "./data/test_label.gz" https://storage.googleapis.com/cvdf-datasets/mnist/t10k-labels-idx1-ubyte.gz
+curl -Lso "./train_img.gz" https://storage.googleapis.com/cvdf-datasets/mnist/train-images-idx3-ubyte.gz
+curl -Lso "./train_label.gz" https://storage.googleapis.com/cvdf-datasets/mnist/train-labels-idx1-ubyte.gz
+curl -Lso "./test_img.gz" https://storage.googleapis.com/cvdf-datasets/mnist/t10k-images-idx3-ubyte.gz
+curl -Lso "./test_label.gz" https://storage.googleapis.com/cvdf-datasets/mnist/t10k-labels-idx1-ubyte.gz
 gunzip *
+for f in *; do mv "$f" "$f.idx"; done
 ```
 
 in the directory of the files and rename to .idx

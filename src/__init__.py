@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
+import torch
+import torch.nn as nn
 
 
 def get_number_of_samples(
@@ -101,6 +103,26 @@ def binary_parse_mnist_data(
     )
 
 
+def normalize_mnist_data(
+    idx_file_training_samples: str,
+    idx_file_training_labels: str,
+    idx_file_test_samples: str,
+    idx_file_test_labels: str,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Returns the MNIST dataset as normalized arrays
+    """
+    training_samples, training_labels, test_samples, test_labels = parse_mnist_data(
+        idx_file_training_samples,
+        idx_file_training_labels,
+        idx_file_test_samples,
+        idx_file_test_labels,
+    )
+    training_samples = training_samples / 255
+    test_samples = test_samples / 255
+    return training_samples, training_labels, test_samples, test_labels
+
+
 # from https://yann.lecun.com/exdb/mnist/
 def parse_mnist_data(
     idx_file_training_samples: str,
@@ -157,6 +179,17 @@ def parse_mnist_labels(idx_file_path: str) -> np.ndarray:
         data = f.read()
         out = np.ndarray((num_item, 1), np.uint8, data)
         return out
+
+
+def get_accuracy(
+    model: nn.Module, samples: torch.Tensor, labels: torch.Tensor
+) -> float:
+    with torch.no_grad():
+        labels = labels.flatten()
+        y_hat = model(samples.flatten(1))
+        correct = sum(torch.argmax(y_hat, dim=1) == labels)
+
+        return (correct / len(samples))
 
 
 def plot_image(img: np.ndarray) -> plt.Figure:
